@@ -1,2 +1,1 @@
-Here you can find plugins, made for E2 based stb's.
-Made using openpli. Can all be used free.
+HetWeer is an open plugin, playing weather functions and cards for Holland and belgium.
