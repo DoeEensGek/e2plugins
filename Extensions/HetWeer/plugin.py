@@ -57,9 +57,9 @@ class Weermenu(Screen):
 
 class secondmenu(Screen):
 	skin = """
-		<screen position="center,center" size="360,280" title="Het weer" >
-			<widget name="list" position="10,0" size="340,180" scrollbarMode="showOnDemand" />
-			<widget name="Text" position="center,200" size="360,100" halign="center" font="Regular;22" />
+		<screen position="center,center" size="360,290" title="Het weer" >
+			<widget name="list" position="10,0" size="340,200" scrollbarMode="showOnDemand" />
+			<widget name="Text" position="center,210" size="360,90" halign="center" font="Regular;22" />
 		</screen>"""
 	
 	def __init__(self, session, iweer, ktekst = None ,urlpart1 = None):
@@ -94,6 +94,7 @@ class secondmenu(Screen):
 			self.imgurl = []
 			
 			self.options.append("Buienradar NL")
+			self.options.append("2 uur vooruit NL")
 			self.options.append("(Sat)Bewolking NL")
 			self.options.append("(Sat)Bewolking Eu")
 			self.options.append("Meteox Eu")
@@ -101,6 +102,7 @@ class secondmenu(Screen):
 			self.options.append("Sneeuw NL")
 			self.options.append("Buienradar Belgie")
 			
+			self.imgurl.append("http://www.buienradar.nl")
 			self.imgurl.append("http://www.buienradar.nl")
 			self.imgurl.append("http://sat24.com/nl/nl")
 			self.imgurl.append("http://sat24.com/nl/eu")
@@ -218,6 +220,8 @@ class secondmenu(Screen):
 				downloadPage(url,"/tmp/HetWeer.png").addCallback(self.downloadDone).addErrback(self.downloadError)
 			elif self.keuzetekst == "Buienradar NL":
 				getPage(self.url).addCallback(self.BRdone).addErrback(self.downloadError)
+			elif self.keuzetekst == "2 uur vooruit NL":
+				getPage(self.url).addCallback(self.BRVdone).addErrback(self.downloadError)
 			elif self.keuzetekst == "Buienradar Belgie":
 				getPage(self.url).addCallback(self.BRBEdone).addErrback(self.downloadError)
 			elif self.keuzetekst == "Meteox Eu":
@@ -241,8 +245,6 @@ class secondmenu(Screen):
 			return
 		
 	def downloadDone(self,raw):
-		#print "[e2Fetcher.fetchPage]: download done", raw
-		#self["Text"].setText(_(" go %s") % (raw) )
 		self.session.open(PictureScreen)
 		
 	def BRdone(self,raw):
@@ -250,27 +252,34 @@ class secondmenu(Screen):
 		j = 0
 		iurllast = " "
 		self.urls = []
-		#n0 = raw.find('<div id="ctl00_pnlMenuRadar">',0)
 		n0 = 0
-		#if n0<0:
-		#	break
-		print "n0 = ", n0
-		n1 = raw.find('<!-- start:reload-1 -->', (n0+15))
+		n1 = raw.find('<div class="time-list"><ul class="time-list-cols">', (n0+15))
 		print "n1 = ", n1
-		while i<11:
-			n2 = raw.find('href="h.aspx?',(n1+2))
+		while i<15:
+			n2 = raw.find('href="',(n1+2))
 			if n2<0:
 				break
 				
 			print "n2 = ", n2	
-			n3 = raw.find('"',(n2+23))
+			n3 = raw.find('/',(n2+8))
 			if n3<0:
 				break
-				
-			print "n3 = ", n3	
-			iurl = "http://www.buienradar.nl/images.aspx?" + raw[(n2+13):(n3)]
+			
+			checkn2n3 = raw[(n2+6):(n3+1)]
+			print checkn2n3
+			checkradar = checkn2n3.find('/radar/',0)
+			checkradaronweer = checkn2n3.find('/radar-onweer/',0)
+			if checkradar<0 and checkradaronweer<0:
+				print "break radar or onweer"
+				break
+						
+			n4 = raw.find('"',(n2+8))
+			if n4<0:
+				break
+			#http://www.buienradar.nl/image/?time=201211201645&type=lightning&extension=png
+			iurl = "http://www.buienradar.nl/image/?time=" + raw[(n3+1):(n4)] + "&type=lightning&extension=png"
 			print iurl
-			check = iurl.find('soort=1x1',0)
+			check = iurl.find('20',0)
 			if check<0:
 				break
 			#print raw[(n2+2):(n3)]
@@ -291,37 +300,131 @@ class secondmenu(Screen):
 			i=i+1
 		
 		
-		#poep
 		try:
 			self.session.open(View_Slideshow, j)
 		except:
 			return
+		
+		
+		
+	def BRVdone(self,raw):
+		i = 0
+		j = 0
+		iurllast = " "
+		self.urls = []
+		n0 = raw.find('<div class="time-list"><ul class="time-list-cols">', 0)
+		n1 = raw.find('<div class="time-list"><ul class="time-list-cols">', (n0+15))
+		print "n1 = ", n1
+		while i<25:
+			n2 = raw.find('href="',(n1+2))
+			if n2<0:
+				break
+				
+			print "n2 = ", n2	
+			n3 = raw.find('/',(n2+8))
+			if n3<0:
+				break
+			
+			checkn2n3 = raw[(n2+6):(n3+1)]
+			print checkn2n3
+			checkradar = checkn2n3.find('/radar-verwachting/',0)
+			if checkradar<0:
+				print "break verwachting"
+				break
+						
+			n4 = raw.find('"',(n2+8))
+			if n4<0:
+				break
+			#http://www.buienradar.nl/image/?time=201211201645&type=lightning&extension=png
+			iurl = "http://www.buienradar.nl/image/?time=" + raw[(n3+1):(n4)] + "&type=forecast&extension=png"
+			print iurl
+			check = iurl.find('20',0)
+			if check<0:
+				break
+			#print raw[(n2+2):(n3)]
+			print j
+			if j>9:
+				png = "/tmp/HetWeer/B%s.png" % j
+			else:
+				png = "/tmp/HetWeer/B0%s.png" % j
+			print png
+			try:
+				urllib.urlretrieve(iurl, png)
+			except:
+				break
+			
+				
+			n1 = (n3+1)
+			j=j+1
+			i=i+1
+		
+		print "shuffle time"
+		last=j-1
+		j = 0
+		print last
+		while last>-1:
+			
+			if j>9:
+				png = "/tmp/HetWeer/%s.png" % j
+			else:
+				png = "/tmp/HetWeer/0%s.png" % j
+				
+			if last>9:
+				before = "/tmp/HetWeer/B%s.png" % last
+			else:
+				before = "/tmp/HetWeer/B0%s.png" % last
+			
+			print before
+			print png
+			try:
+				os.rename(before, png)
+			except:
+				break
+			
+			last = last-1
+			j=j+1
+
+
+
+		try:
+			self.session.open(View_Slideshow, j)
+		except:
+			return
+			
+			
 		
 	def BRBEdone(self,raw):
 		i = 0
 		j = 0
 		iurllast = " "
 		self.urls = []
-		n0 = raw.find('<div id="leftnav">',0)
-		#if n0<0:
-		#	break
+		n0 = 0
 		print "n0 = ", n0
 		n1 = raw.find('<ul class="timeurls">', (n0+15))
 		print "n1 = ", n1
 		while i<11:
-			n2 = raw.find('<a href="/radar/',(n1+11))
+			n2 = raw.find('href="',(n1+2))
 			if n2<0:
 				break
 				
 			print "n2 = ", n2	
-			n3 = raw.find('"',(n2+17))
+			n3 = raw.find('/',(n2+8))
 			if n3<0:
 				break
 				
-			print "n3 = ", n3	
-			iurl = "http://www.buienradar.be/image/?time=" + raw[(n2+16):(n3)]
+			checkn2n3 = raw[(n2+6):(n3+1)]
+			print checkn2n3
+			checkradar = checkn2n3.find('/radar/',0)
+			checkradaronweer = checkn2n3.find('/radar-onweer/',0)
+			if checkradar<0 and checkradaronweer<0:
+				print "break radar or onweer"
+				break
+						
+			n4 = raw.find('"',(n2+8))
+			if n4<0:
+				break	
+			iurl = "http://www.buienradar.be/image/?time=" + raw[(n3+1):(n4)]
 			print iurl
-			#print raw[(n2+2):(n3)]
 			print j
 			if j>9:
 				png = "/tmp/HetWeer/%s.png" % j
@@ -332,18 +435,11 @@ class secondmenu(Screen):
 				urllib.urlretrieve(iurl, png)
 			except:
 				break
-			#downloadPage(iurl,png).addCallback(continue).addErrback(self.downloadError)
-			#if iurl != iurllast:
-				#self.urls.append(j)
-				#self.urls[j] = iurl
-				#iurllast = self.urls[j]
-				#j = j+1
 				
 			n1 = (n3+1)
 			j=j+1
 			i=i+1
 		
-		#self["list"].setList(self.urls)
 		try:
 			self.session.open(View_Slideshow, j)
 		except:
@@ -354,10 +450,7 @@ class secondmenu(Screen):
 		j = 0
 		iurllast = " "
 		self.urls = []
-		#n0 = raw.find('<div id="ctl00_pnlMenuRadar">',0)
-		#if n0<0:
-		#	break
-		#print "n0 = ", n0
+
 		n1 = raw.find('<span id="ctl00_lblTabel">', 0)
 		print "n1 = ", n1
 		while i<14:
@@ -373,7 +466,7 @@ class secondmenu(Screen):
 			print "n3 = ", n3	
 			iurl = "http://europa.buienradar.nl/images.aspx?" + raw[(n2+16):(n3)]
 			print iurl
-			#print raw[(n2+2):(n3)]
+
 			print j
 			if j>9:
 				png = "/tmp/HetWeer/%s.png" % j
@@ -384,18 +477,13 @@ class secondmenu(Screen):
 				urllib.urlretrieve(iurl, png)
 			except:
 				break
-			#downloadPage(iurl,png).addCallback(continue).addErrback(self.downloadError)
-			#if iurl != iurllast:
-				#self.urls.append(j)
-				#self.urls[j] = iurl
-				#iurllast = self.urls[j]
-				#j = j+1
+
 				
 			n1 = (n3+1)
 			j=j+1
 			i=i+1
 		
-		#self["list"].setList(self.urls)
+
 		try:
 			self.session.open(View_Slideshow, j)
 		except:
@@ -407,10 +495,7 @@ class secondmenu(Screen):
 		j = 0
 		iurllast = " "
 		self.urls = []
-		#n0 = raw.find('<div id="ctl00_pnlMenuRadar">',0)
-		#if n0<0:
-		#	break
-		#print "n0 = ", n0
+
 		n1 = raw.find('<table style="text-align:center" align="center">', 0)
 		print "n1 = ", n1
 		while i<24:
@@ -429,26 +514,48 @@ class secondmenu(Screen):
 			#print raw[(n2+2):(n3)]
 			print j
 			if j>9:
-				png = "/tmp/HetWeer/%s.png" % j
+				png = "/tmp/HetWeer/B%s.png" % j
 			else:
-				png = "/tmp/HetWeer/0%s.png" % j
+				png = "/tmp/HetWeer/B0%s.png" % j
 			print png
 			try:
 				urllib.urlretrieve(iurl, png)
 			except:
 				break
-			#downloadPage(iurl,png).addCallback(continue).addErrback(self.downloadError)
-			#if iurl != iurllast:
-				#self.urls.append(j)
-				#self.urls[j] = iurl
-				#iurllast = self.urls[j]
-				#j = j+1
+
 				
 			n1 = (n3+1)
 			j=j+1
 			i=i+1
 		
-		#self["list"].setList(self.urls)
+		print "shuffle time"
+		last=j-1
+		j = 0
+		print last
+		while last>-1:
+			
+			if j>9:
+				png = "/tmp/HetWeer/%s.png" % j
+			else:
+				png = "/tmp/HetWeer/0%s.png" % j
+				
+			if last>9:
+				before = "/tmp/HetWeer/B%s.png" % last
+			else:
+				before = "/tmp/HetWeer/B0%s.png" % last
+			
+			print before
+			print png
+			try:
+				os.rename(before, png)
+			except:
+				break
+			
+			last = last-1
+			j=j+1
+
+
+		
 		try:
 			self.session.open(View_Slideshow, j)
 		except:
@@ -491,18 +598,13 @@ class secondmenu(Screen):
 				urllib.urlretrieve(iurl, png)
 			except:
 				break
-			#downloadPage(iurl,png).addCallback(continue).addErrback(self.downloadError)
-			#if iurl != iurllast:
-				#self.urls.append(j)
-				#self.urls[j] = iurl
-				#iurllast = self.urls[j]
-				#j = j+1
+
 				
 			n1 = (n3+1)
 			j=j+1
 			i=i+1
 		
-		#self["list"].setList(self.urls)
+
 		try:
 			self.session.open(View_Slideshow, j)
 		except:
@@ -517,7 +619,7 @@ class PictureScreen(Screen):
 	sz_h = getDesktop(0).size().height()
 	
 	skin="""
-		<screen name="PictureScreen" position="center,center" size="%d,%d" title="Picture Screen" backgroundColor="noTransBG" scrollbarMode="showOnDemand" >
+		<screen name="Na Regen Komt Zonneschijn" position="center,center" size="%d,%d" title="Picture Screen" backgroundColor="noTransBG" scrollbarMode="showOnDemand" >
 			<widget name="myPic" position="center,center" size="%d,%d" zPosition="1" alphatest="on" scrollbarMode="showOnDemand" />
 		</screen>"""%( sz_w, sz_h, (sz_w - 55), (sz_h - 50) )
 
@@ -643,7 +745,7 @@ class View_Slideshow(Screen, InfoBarAspectSelection):
 		size_h = getDesktop(0).size().height()
 
 		self.skindir = "/tmp"
-		self.skin = "<screen position=\"0,0\" size=\"" + str(size_w) + "," + str(size_h) + "\" flags=\"wfNoBorder\" > \
+		self.skin = "<screen name=\"Na Regen Komt Zonneschijn\" position=\"0,0\" size=\"" + str(size_w) + "," + str(size_h) + "\" flags=\"wfNoBorder\" > \
 			<eLabel position=\"0,0\" zPosition=\"0\" size=\""+ str(size_w) + "," + str(size_h) + "\" backgroundColor=\""+ self.bgcolor +"\" /> \
 			<widget name=\"pic\" position=\"" + str(space) + "," + str(space) + "\" size=\"" + str(size_w-(space*2)) + "," + str(size_h-(space*2)) + "\" zPosition=\"1\" alphatest=\"on\" /> \
 			<widget name=\"file\" position=\""+ str(space+45) + "," + str(space+10) + "\" size=\""+ str(size_w-(space*2)-50) + ",25\" font=\"Regular;20\" halign=\"left\" foregroundColor=\"" + self.textcolor + "\" zPosition=\"2\" noWrap=\"1\" transparent=\"1\" /> \
@@ -680,7 +782,10 @@ class View_Slideshow(Screen, InfoBarAspectSelection):
 
 		for x in self.filelist.getFileList():
 			if x[0][1] == False:
-				self.picfilelist.append(currDir + x[0][0])
+				try:
+					self.picfilelist.append(currDir + x[0][0])
+				except:
+					break
 			else:
 				self.dirlistcount += 1
 
