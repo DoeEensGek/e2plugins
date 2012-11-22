@@ -2,6 +2,10 @@ Here you can find plugins, made for E2 based stb's. Made by me, just for fun.
 Made using openpli. Can all be used free.
 
 *****Dontaions:
+
+https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=Z99BXFYUATVQ6&lc=NL&item_name=plugins&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted
+
+
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 <input type="hidden" name="cmd" value="_donations">
 <input type="hidden" name="business" value="Z99BXFYUATVQ6">
