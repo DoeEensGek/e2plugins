@@ -792,12 +792,25 @@ class OpenUg(Screen):
 		url = ''
 		name = ''
 		icon = ''
+		n1 = 0
+		n2 = 0
 		for line in data:
 			tmp = ".mp4"
+			print 'line in data'
 			if tmp in line:
-				tmp = "<a href=\""
-				if tmp in line:
-					url = line.split(tmp)[1].split("\">")[0]
+				tmp = "href=\""
+				print 'found .mp4'
+				n1 = line.find(".mp4")
+				n2 = line.find("http://")
+				print n1
+				print n2
+				url = line[n2:(n1+4)]
+				print url
+				#if tmp in line:
+				#	print 'found href'
+				#	url = line.split(tmp)[1].split("\">")[0]
+				#	print url
+				#	print "return with url"
 				return url
 		return ''
 
@@ -815,10 +828,10 @@ class OpenUg(Screen):
 			if "<li>" in line:
 				state = 1
 			if state == 1:
-				tmp = "<a href=\"episode"
+				tmp = "href=\"video"
 				if tmp in line:
-					tmp = "<a href=\""
-					stream = line.split(tmp)[1].split('\">')[0]
+					tmp = "href=\""
+					stream = line.split(tmp)[1].split('\"')[0]
 
 				#tmp = "<img class=\"thumbnail\" src=\""
 				#if tmp in line:
@@ -830,9 +843,13 @@ class OpenUg(Screen):
 					state = 2
 
 			elif state == 2:
+				#tmp = "<span class=\"extra_info\">"
 				tmp = "<br />"
-				short = line.split(tmp)[0].lstrip()
-				state = 3
+				if tmp in line:
+					tmp = "<br />"
+					#line = data.next()
+					short = line.split(tmp)[0]
+					state = 3
 
 			elif state == 3:
 				tmp = "<br />"
@@ -866,7 +883,7 @@ class OpenUg(Screen):
 			elif state == 1:
 				tmp = "<a href=\""
 				if tmp in line:
-					stream = line.split(tmp)[1].split('\">')[0]
+					stream = line.split(tmp)[1].split('\"')[0]
 
 				#tmp = "<img class=\"thumbnail\" src=\""
 				#if tmp in line:
@@ -895,14 +912,10 @@ class OpenUg(Screen):
 			if tmp in line:
 				state = 1
 			if state == 1:
-				tmp = "<a href=\"episode"
+				tmp = "href=\"video"
 				if tmp in line:
-					tmp = "<a href=\""
-					stream = line.split(tmp)[1].split('\">')[0]
-
-				#tmp = "<img class=\"thumbnail\" src=\""
-				#if tmp in line:
-				#	icon = line.split(tmp)[1].split('\" ')[0]
+					tmp = "href=\""
+					stream = line.split(tmp)[1].split('\"')[0]
 
 				tmp = "<span class=\"title\">"
 				if tmp in line:
@@ -910,15 +923,21 @@ class OpenUg(Screen):
 					state = 2
 
 			elif state == 2:
-				short = line.split("<br />")[0].lstrip()
-				state = 3
+				#tmp = "<span class=\"extra_info\">"
+				tmp = "<br />"
+				if tmp in line:
+					tmp = "<br />"
+					#line = data.next()
+					short = line.split(tmp)[0]
+					state = 3
 
 			elif state == 3:
-				channel = line.split("<br />")[0].lstrip()
+				channel = ''
 				state = 4
 
 			elif state == 4:
-				date = ''
+				tmp = "<br />"
+				date = line.split(tmp)[0].lstrip()
 				#icon_type = self.getIconType(icon)
 				weekList.append((date, name, short, channel, stream, False))
 				state = 0
