@@ -843,13 +843,12 @@ class OpenUg(Screen):
 					state = 2
 
 			elif state == 2:
-				#tmp = "<span class=\"extra_info\">"
-				tmp = "<br />"
+				tmp = "<span class=\"extra_info\">"
 				if tmp in line:
-					tmp = "<br />"
-					#line = data.next()
-					short = line.split(tmp)[0]
-					state = 3
+					continue
+				tmp = "<br />"
+				short = line.split(tmp)[0].lstrip()
+				state = 3
 
 			elif state == 3:
 				tmp = "<br />"
@@ -859,8 +858,6 @@ class OpenUg(Screen):
 			elif state == 4:
 				tmp = "<br />"
 				date = line.split(tmp)[0].lstrip()
-
-				#icon_type = self.getIconType(icon)
 				weekList.append((date, name, short, channel, stream, False))
 				state = 0
 
@@ -923,21 +920,21 @@ class OpenUg(Screen):
 					state = 2
 
 			elif state == 2:
-				#tmp = "<span class=\"extra_info\">"
-				tmp = "<br />"
+				tmp = "<span class=\"extra_info\">"
+				#tmp = "<br />"
 				if tmp in line:
-					tmp = "<br />"
-					#line = data.next()
-					short = line.split(tmp)[0]
-					state = 3
+					continue
+				tmp = "|"
+				short = line.split(tmp)[0]
+				state = 3
 
 			elif state == 3:
+				date = line
 				channel = ''
 				state = 4
 
 			elif state == 4:
-				tmp = "<br />"
-				date = line.split(tmp)[0].lstrip()
+				#date = line
 				#icon_type = self.getIconType(icon)
 				weekList.append((date, name, short, channel, stream, False))
 				state = 0
