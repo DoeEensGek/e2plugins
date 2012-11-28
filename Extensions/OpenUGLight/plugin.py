@@ -1089,4 +1089,4 @@ def main(session, **kwargs):
 	session.open(OpenUgSetupScreen)
 
 def Plugins(**kwargs):
-	return [PluginDescriptor(name = "Open uitzending gemist Light", description = _("Watch uitzending gemist"), where = PluginDescriptor.WHERE_EXTENSIONSMENU, fnc = main)]
+	return [PluginDescriptor(name = "Uitzending gemist", description = _("Bekijk uitzending gemist"), where = PluginDescriptor.WHERE_EXTENSIONSMENU, fnc = main)]
